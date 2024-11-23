@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/MDmitryM/todo-app-GO"
@@ -10,16 +9,18 @@ import (
 	"github.com/MDmitryM/todo-app-GO/pkg/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 func main() {
+	logrus.SetFormatter(new(logrus.JSONFormatter))
 	if err := initConfig(); err != nil {
-		log.Fatalf("can't read cfg! %s", err.Error())
+		logrus.Fatalf("can't read cfg! %s", err.Error())
 	}
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("can't read .env! %s", err.Error())
+		logrus.Fatalf("can't read .env! %s", err.Error())
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -31,7 +32,7 @@ func main() {
 		SSLMode:  viper.GetString("db.sslmode"),
 	})
 	if err != nil {
-		log.Fatalf("can't open db! %s", err.Error())
+		logrus.Fatalf("can't open db! %s", err.Error())
 	}
 
 	repository := repository.NewRepository(db)
@@ -41,7 +42,7 @@ func main() {
 	srv := new(todo.Server)
 
 	if err := srv.Run(viper.GetString("port"), handler.InitRoutes()); err != nil {
-		log.Fatalf("server run error! %s", err.Error())
+		logrus.Fatalf("server run error! %s", err.Error())
 	}
 }
 
