@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -63,7 +64,20 @@ func (t *TodoListPostgres) Delete(userId, listId int) error {
 
 	queryListQuery := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE tl.id = ul.list_id AND ul.user_id=$1 AND ul.list_id =$2",
 		todoListsTable, userListsTable)
-	_, err := t.db.Exec(queryListQuery, userId, listId)
+	del, err := t.db.Exec(queryListQuery, userId, listId)
+	if err != nil {
+		return err
+	}
+
+	result, err := del.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if result == 0 {
+		err = errors.New("list does not exist")
+	}
 
 	return err
 }
@@ -94,7 +108,19 @@ func (t *TodoListPostgres) Update(userId, listId int, input todo.UpdateListInput
 	logrus.Debugf("updateQuery: %s", updateQuery)
 	logrus.Debugf("args: %s", args)
 
-	_, err := t.db.Exec(updateQuery, args...)
+	upd, err := t.db.Exec(updateQuery, args...)
+	if err != nil {
+		return err
+	}
+
+	result, err := upd.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if result == 0 {
+		err = errors.New("list does not exist")
+	}
 
 	return err
 }
