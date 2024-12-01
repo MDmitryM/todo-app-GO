@@ -2,9 +2,11 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/MDmitryM/todo-app-GO"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 type TodoListPostgres struct {
@@ -62,6 +64,37 @@ func (t *TodoListPostgres) Delete(userId, listId int) error {
 	queryListQuery := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE tl.id = ul.list_id AND ul.user_id=$1 AND ul.list_id =$2",
 		todoListsTable, userListsTable)
 	_, err := t.db.Exec(queryListQuery, userId, listId)
+
+	return err
+}
+
+func (t *TodoListPostgres) Update(userId, listId int, input todo.UpdateListInput) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	if input.Title != nil {
+		setValues = append(setValues, fmt.Sprintf("title=$%d", argId))
+		args = append(args, *input.Title)
+		argId++
+	}
+
+	if input.Description != nil {
+		setValues = append(setValues, fmt.Sprintf("description=$%d", argId))
+		args = append(args, *input.Description)
+		argId++
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	updateQuery := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.list_id AND ul.list_id=$%d AND ul.user_id=$%d",
+		todoListsTable, setQuery, userListsTable, argId, argId+1)
+
+	args = append(args, listId, userId)
+	logrus.Debugf("updateQuery: %s", updateQuery)
+	logrus.Debugf("args: %s", args)
+
+	_, err := t.db.Exec(updateQuery, args...)
 
 	return err
 }
