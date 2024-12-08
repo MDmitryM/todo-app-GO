@@ -4,17 +4,13 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/MDmitryM/todo-app-GO"
 	"github.com/MDmitryM/todo-app-GO/pkg/repository"
 	"github.com/dgrijalva/jwt-go"
-)
-
-// TODO: унести соль и ключ в .env
-const (
-	salt       = "aihvsop198kgmlk"
-	signingKey = "fsadfasgagashdjgfasdf5z12b135afg56"
+	"github.com/joho/godotenv"
 )
 
 type tokenClaims struct {
@@ -23,18 +19,26 @@ type tokenClaims struct {
 }
 
 type AuthService struct {
-	repo repository.Authorization
+	repo       repository.Authorization
+	signingKey string
+	salt       string
 }
 
-func NewAuthService(repo repository.Authorization) *AuthService {
-	return &AuthService{repo: repo}
+func NewAuthService(repo repository.Authorization) (*AuthService, error) {
+	if err := godotenv.Load(); err != nil {
+		return nil, err
+	}
+
+	signningKey := os.Getenv("SIGNING_KEY")
+	salt := os.Getenv("SALT")
+	return &AuthService{repo: repo, signingKey: signningKey, salt: salt}, nil
 }
 
 func (a *AuthService) generatePasswordHash(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+	return fmt.Sprintf("%x", hash.Sum([]byte(a.salt)))
 }
 
 func (a *AuthService) CreateUser(user todo.User) (int, error) {
@@ -56,7 +60,7 @@ func (a *AuthService) GenerateToken(username, password string) (string, error) {
 		user.Id,
 	})
 
-	tokenStr, err := token.SignedString([]byte(signingKey))
+	tokenStr, err := token.SignedString([]byte(a.signingKey))
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +72,7 @@ func (a *AuthService) ParseToken(accessToken string) (int, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
-		return []byte(signingKey), nil
+		return []byte(a.signingKey), nil
 	})
 	if err != nil {
 		return 0, err

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/MDmitryM/todo-app-GO"
 	"github.com/MDmitryM/todo-app-GO/pkg/handler"
@@ -36,13 +40,36 @@ func main() {
 	}
 
 	repository := repository.NewRepository(db)
-	services := service.NewService(repository)
+	services, err := service.NewService(repository)
+	if err != nil {
+		logrus.Fatalf("create service error! %s", err.Error())
+	}
 	handler := handler.NewHandler(services)
 
 	srv := new(todo.Server)
 
-	if err := srv.Run(viper.GetString("port"), handler.InitRoutes()); err != nil {
-		logrus.Fatalf("server run error! %s", err.Error())
+	go func() {
+		if err := srv.Run(viper.GetString("port"), handler.InitRoutes()); err != nil {
+			if err != http.ErrServerClosed {
+				logrus.Fatalf("server run error! %s", err.Error())
+			}
+		}
+	}()
+
+	logrus.Print("Server started, todo app is running.")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	logrus.Print("shutting down")
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		logrus.Errorf("error occured on server shutting down: %s", err.Error())
+	}
+
+	if err := db.Close(); err != nil {
+		logrus.Errorf("error occured on database close: %s", err.Error())
 	}
 }
 
