@@ -1,0 +1,34 @@
+services:
+    web:
+      build: ./
+      command: ./todo-app-go
+      ports:
+        - 8000:8000
+      depends_on:
+        db:
+          condition: service_healthy
+
+    db:
+      restart: always
+      image: postgres:latest
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+        interval: 5s
+        retries: 10
+        start_period: 30s
+        timeout: 10s
+      volumes:
+        - ./.database/postgres/data:/var/lib/postgresql/data
+      environment:
+        - POSTGRES_PASSWORD=qwerty
+      ports:
+        - 5436:5432
+
+    migrate:
+      image: migrate/migrate:latest
+      command: ["-path", "/schema", "-database", "postgres://postgres:qwerty@db:5432/postgres?sslmode=disable", "up"]
+      depends_on:
+        db:
+          condition: service_healthy
+      volumes:
+        - ./schema:/schema

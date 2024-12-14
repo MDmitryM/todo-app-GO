@@ -34,8 +34,12 @@ func main() {
 		logrus.Fatalf("can't read cfg! %s", err.Error())
 	}
 
-	if err := godotenv.Load(); err != nil {
-		logrus.Fatalf("can't read .env! %s", err.Error())
+	env := os.Getenv("ENV")
+	if env != "production" {
+		// Загружаем .env только в dev-окружении
+		if err := godotenv.Load(); err != nil {
+			logrus.Println("No .env file found, relying on environment variables")
+		}
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
