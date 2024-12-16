@@ -33,8 +33,8 @@ type Service struct {
 	TodoItem
 }
 
-func NewService(repos *repository.Repository) (*Service, error) {
-	authServ, err := NewAuthService(repos.Authorization)
+func NewService(repos *repository.Repository, signingKey, salt string) (*Service, error) {
+	authServ, err := NewAuthService(repos.Authorization, signingKey, salt)
 	if err != nil {
 		return nil, err
 	}

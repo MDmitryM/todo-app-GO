@@ -4,13 +4,11 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/MDmitryM/todo-app-GO"
 	"github.com/MDmitryM/todo-app-GO/pkg/repository"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joho/godotenv"
 )
 
 type tokenClaims struct {
@@ -24,14 +22,12 @@ type AuthService struct {
 	salt       string
 }
 
-func NewAuthService(repo repository.Authorization) (*AuthService, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, err
+func NewAuthService(repo repository.Authorization, signingKey, salt string) (*AuthService, error) {
+	if signingKey == "" || salt == "" {
+		return nil, fmt.Errorf("missing required configuration: signingKey or salt")
 	}
 
-	signningKey := os.Getenv("SIGNING_KEY")
-	salt := os.Getenv("SALT")
-	return &AuthService{repo: repo, signingKey: signningKey, salt: salt}, nil
+	return &AuthService{repo: repo, signingKey: signingKey, salt: salt}, nil
 }
 
 func (a *AuthService) generatePasswordHash(password string) string {

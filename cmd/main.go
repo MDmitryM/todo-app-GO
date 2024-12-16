@@ -34,28 +34,41 @@ func main() {
 		logrus.Fatalf("can't read cfg! %s", err.Error())
 	}
 
+	var conf repository.Config
 	env := os.Getenv("ENV")
 	if env != "production" {
 		// Загружаем .env только в dev-окружении
 		if err := godotenv.Load(); err != nil {
-			logrus.Println("No .env file found, relying on environment variables")
+			logrus.Fatalf("No .env file found, relying on environment variables")
+		}
+		conf = repository.Config{
+			Host:     viper.GetString("dev_db.host"),
+			Port:     viper.GetString("dev_db.port"),
+			Username: viper.GetString("dev_db.username"),
+			Password: os.Getenv("DB_PASSWORD"),
+			DBName:   viper.GetString("dev_db.dbname"),
+			SSLMode:  viper.GetString("dev_db.sslmode"),
+		}
+		logrus.Println("Using localhost for DB connection")
+	} else {
+		conf = repository.Config{
+			Host:     viper.GetString("db.host"),
+			Port:     viper.GetString("db.port"),
+			Username: viper.GetString("db.username"),
+			Password: os.Getenv("DB_PASSWORD"),
+			DBName:   viper.GetString("db.dbname"),
+			SSLMode:  viper.GetString("db.sslmode"),
 		}
 	}
-
-	db, err := repository.NewPostgresDB(repository.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		Password: os.Getenv("DB_PASSWORD"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
-	})
+	var signingKey = os.Getenv("SIGNING_KEY")
+	var salt = os.Getenv("SALT")
+	db, err := repository.NewPostgresDB(conf)
 	if err != nil {
 		logrus.Fatalf("can't open db! %s", err.Error())
 	}
 
 	repository := repository.NewRepository(db)
-	services, err := service.NewService(repository)
+	services, err := service.NewService(repository, signingKey, salt)
 	if err != nil {
 		logrus.Fatalf("create service error! %s", err.Error())
 	}
