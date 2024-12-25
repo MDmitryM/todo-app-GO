@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -60,15 +61,14 @@ func main() {
 			SSLMode:  viper.GetString("db.sslmode"),
 		}
 	}
-	var signingKey = os.Getenv("SIGNING_KEY")
-	var salt = os.Getenv("SALT")
+	fmt.Printf("k=%s s=%s", os.Getenv("SIGNING_KEY"), os.Getenv("SALT"))
 	db, err := repository.NewPostgresDB(conf)
 	if err != nil {
 		logrus.Fatalf("can't open db! %s", err.Error())
 	}
 
 	repository := repository.NewRepository(db)
-	services, err := service.NewService(repository, signingKey, salt)
+	services, err := service.NewService(repository)
 	if err != nil {
 		logrus.Fatalf("create service error! %s", err.Error())
 	}
