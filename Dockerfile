@@ -11,9 +11,9 @@ FROM alpine:3.17
 
 COPY --from=build /todo-app-go /todo-app-go
 COPY ./configs/ /configs/
-ENV ENV=production
-ENV DB_PASSWORD=qwerty
-ENV SIGNING_KEY=fsadfasgagashdjgfasdf5z12b135afg56
-ENV SALT=aihvsop198kgmlk
+#ENV ENV=production
+#ENV DB_PASSWORD=qwerty
+#ENV SIGNING_KEY=fsadfasgagashdjgfasdf5z12b135afg56
+#ENV SALT=aihvsop198kgmlk
 
 CMD ["./todo-app-go"]

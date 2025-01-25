@@ -2,6 +2,10 @@ services:
     web:
       build: ./
       command: ./todo-app-go
+      env_file:
+      - .env
+      environment:
+        - ENV=production
       ports:
         - 8000:8000
       depends_on:
@@ -20,7 +24,7 @@ services:
       volumes:
         - ./.database/postgres/data:/var/lib/postgresql/data
       environment:
-        - POSTGRES_PASSWORD=qwerty
+        - POSTGRES_PASSWORD=${DB_PASSWORD}
       ports:
         - 5436:5432
 
