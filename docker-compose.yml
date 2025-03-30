@@ -1,7 +1,6 @@
 services:
     web:
-      build: ./
-      command: ./todo-app-go
+      image: mdmitrym/todo-app-go:latest
       env_file:
       - .env
       environment:
