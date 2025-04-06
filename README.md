@@ -52,7 +52,7 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone <repository-url>
+git clone https://github.com/MDmitryM/todo-app-GO.git
 cd todo-app-GO
 ```
 
