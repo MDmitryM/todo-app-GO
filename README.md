@@ -5,7 +5,7 @@
 ## Технологии
 
 - Go
-- PostgreSQL
+- PostgreSQL (sqlx)
 - Docker & Docker Compose
 - Migrate (для управления миграциями базы данных)
 - Gin
