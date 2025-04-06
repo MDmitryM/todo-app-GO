@@ -45,20 +45,20 @@ func main() {
 		conf = repository.Config{
 			Host:     viper.GetString("dev_db.host"),
 			Port:     viper.GetString("dev_db.port"),
-			Username: viper.GetString("dev_db.username"),
+			Username: os.Getenv("POSTGRES_USER"),
 			Password: os.Getenv("DB_PASSWORD"),
-			DBName:   viper.GetString("dev_db.dbname"),
-			SSLMode:  viper.GetString("dev_db.sslmode"),
+			DBName:   os.Getenv("POSTGRES_DB"),
+			SSLMode:  "disable",
 		}
 		logrus.Println("Using localhost for DB connection")
 	} else {
 		conf = repository.Config{
 			Host:     viper.GetString("db.host"),
 			Port:     viper.GetString("db.port"),
-			Username: viper.GetString("db.username"),
+			Username: os.Getenv("POSTGRES_USER"),
 			Password: os.Getenv("DB_PASSWORD"),
-			DBName:   viper.GetString("db.dbname"),
-			SSLMode:  viper.GetString("db.sslmode"),
+			DBName:   os.Getenv("POSTGRES_DB"),
+			SSLMode:  "disable",
 		}
 	}
 	fmt.Printf("k=%s s=%s", os.Getenv("SIGNING_KEY"), os.Getenv("SALT"))

@@ -2,16 +2,10 @@ port: "8000"
 
 #prod db from docker-compose
 db:
-  username: "postgres"
   host: "db" #from docker compose
   port: "5432"
-  dbname: "postgres"
-  sslmode: "disable"
 
 #for local development
 dev_db:
-  username: "postgres"
   host: "localhost"
   port: "5438"
-  dbname: "postgres"
-  sslmode: "disable"
